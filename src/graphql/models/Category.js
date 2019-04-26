@@ -1,66 +1,37 @@
-import AsyncStorage from "@react-native-community/async-storage";
 import gql from "graphql-tag";
 
-const CATEGORIES_DATA_ID = "CATEGRIES_DATA_ID";
-const CATEGORY = "CATEGORY";
-
-const defaultData = [
-  {
-    id: 0,
-    __typename: "Category",
-    title: "All Tasks",
-    icon: "notebook"
-  },
-  {
-    id: 1,
-    __typename: "Category",
-    title: "Personal",
-    icon: "user"
-  },
-  // {
-  //   id: 2,
-  //   __typename: "Category",
-  //   title: "Work",
-  //   icon: "briefcase"
-  // },
-];
-
-export const getAll = async () => {
-  const savedData = await AsyncStorage.getItem(CATEGORIES_DATA_ID);
-
-  if (savedData) {
-    try {
-      const data = JSON.stringify(savedData);
-      return data;
-    } catch (e) {}
-  }
-  return defaultData;
-};
-
-export const getItems = async parent => {
-  const savedData = await AsyncStorage.getItem(`${CATEGORY}_${parent.id}`);
-
-  if (savedData) {
-    try {
-      const data = JSON.stringify(savedData);
-    } catch (e) {}
-  }
-  return [];
-};
-
-export const getCount = async parent => {
-  const items = await getItems(parent);
-  return items.length;
-};
+const AllCategoriesQuery = gql`
+    query AllCategories {
+      categories {
+        id
+        __typename
+        title,
+        count,
+        icon,
+        count,
+        items {
+          id
+          __typename,
+          title,
+          subtitle,
+          date,
+          done
+        }
+      }
+    }
+  `
 
 export const addCategory = async (_, variables, { cache }) => {
   const prevs = cache.readQuery({
     query: gql`
     {
       categories @client {
+        id
         title,
         count,
-        icon
+        icon,
+        count,
+        items
       }
     }
   `
@@ -82,4 +53,32 @@ export const addCategory = async (_, variables, { cache }) => {
   }
 
   cache.writeData({data})
+}
+
+export const addItem = async (_, { categoryId, title, subtitle, date }, { cache, getCacheKey }) => {
+  
+  const {categories} = cache.readQuery({
+    query: AllCategoriesQuery,
+  })
+
+  console.log(categories);
+
+  const category = categories.find(i => i.id === categoryId);
+
+  category.items.push({
+    id: category.items.length,
+    __typename: 'Todo',
+    title,
+    subtitle,
+    date,
+    done: false
+  })
+
+  category.count = category.items.length
+
+  cache.writeData({
+    data: {
+      categories,
+    }
+  })
 }

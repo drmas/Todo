@@ -22,6 +22,7 @@ const TasksCategories = props => {
   };
 
   const { data, error, loading } = useQuery(GET_CATEGORIES);
+  console.log('Data', data);
 
   if (loading) {
     return <View style={styles.container} />;
