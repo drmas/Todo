@@ -2,6 +2,18 @@ import React, { Component } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { colors } from "../theme";
 import TaskCategoryItem from "../components/TaskCategoryItem";
+import { Query } from "react-apollo";
+import gql from "graphql-tag";
+
+export const GET_CATEGORIES = gql`
+  {
+    categories @client {
+      title,
+      count,
+      icon
+    }
+  }
+`
 
 export default class TasksCategories extends Component {
   static navigationOptions = {
@@ -15,13 +27,25 @@ export default class TasksCategories extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <TaskCategoryItem
-          title="All Tasks"
-          subtitle="9 items"
-          icon="notebook"
-          onPress={this.onPress}
-        />
-        <TaskCategoryItem
+        <Query query={GET_CATEGORIES}>
+          {({ data }) => {
+            if (data && data.categories) {
+              return data.categories.map(cat => (
+                <TaskCategoryItem
+                  key={cat.title}
+                  title={cat.title}
+                  subtitle={cat.count + ' Items'}
+                  icon={cat.icon}
+                  onPress={this.onPress}
+                />
+              ));
+            }
+
+            return null
+          }}
+        </Query>
+
+        {/* <TaskCategoryItem
           title="Personal"
           subtitle="9 items"
           icon="user"
@@ -38,7 +62,7 @@ export default class TasksCategories extends Component {
           subtitle=""
           icon="plus"
           onPress={this.onPress}
-        />
+        /> */}
       </View>
     );
   }
