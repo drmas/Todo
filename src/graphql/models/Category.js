@@ -23,12 +23,6 @@ const defaultData = [
   //   title: "Work",
   //   icon: "briefcase"
   // },
-  {
-    id: 3,
-    __typename: "Category",
-    title: "Add List",
-    icon: "plus"
-  }
 ];
 
 export const getAll = async () => {
